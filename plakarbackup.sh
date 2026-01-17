@@ -26,11 +26,12 @@
 ########################################################################################################################
 # Changelog:
 # 2026/01/16 - v0.1 - Creation of plakarbackup.sh
+# 2026/01/17 - v0.2 - Add sync (-sto) option
 #
 ########################################################################################################################
 
 
-ver="0.1"
+ver="0.2"
 
 BANNERINIT="=======================- PLAKARBACKUP LOG -========================="
 BANNEREND="==================- END of PLAKARBACKUP LOG -======================="
@@ -52,12 +53,13 @@ __help()
 	cat <<END_HELP
 plakarbackup -- Backup files with plakar
 
-USAGE: plakarbackup [-h] [-m] [-mf] <repo name> [<files>]
+USAGE: plakarbackup [-h] [-m] [-mf] [-sto <repo1>,<repo2>, ...] <repo name> [<files>]
 
 OPTIONS:
 	-h this help
 	-m send backup log by email - check mail section in .ini file
-    -mf send backup log by email only on failure
+	-mf send backup log by email only on failure
+	-sto <repo1>,<repo2>, ... specify repositories to sync the repo to after the backup
 	
 INI FILE:
 	.ini file is used to configure backups (directories, mail settings etc).
@@ -115,6 +117,11 @@ __init_settings() {
 		if [[ ${#FILETAB[@]} -eq 0 ]]; then
 			echo "Error: No files to backup specified in cli or .ini file..."; exit 1
 		fi
+	fi
+
+	# SYNC TARGETS (optional) - Read STO entries from INI if not provided via CLI
+	if [[ ${#STOTAB[@]} -eq 0 ]]; then
+		IFS=':' read -ra STOTAB <<< $(awk -v patt="^STO" -F "=" 'BEGIN {ORS=":"} {if (! ($0 ~ /^;/) && $0 ~ patt ) print $2}' $INIFILE)
 	fi
 }
 
@@ -174,6 +181,17 @@ __plakar_launch() {
     done
 }
 
+__plakar_sync() {
+	# Sync plakar repository to specified targets
+	for DEST in "${STOTAB[@]}"; do
+		__log "Syncing @$REPONAME to $DEST ..."
+		$PLAKAR at "@$REPONAME" sync to "$DEST" 2>&1 | tee -a $LOGFILE
+		if [[ $? -ne 0 ]]; then
+			__error "Error during plakar sync to $DEST." 1
+		fi
+	done
+}
+
 ############################################################
 # MAIN
 ############################################################
@@ -183,12 +201,19 @@ __plakar_launch() {
 MAIL=false
 SUCCESS=false
 ALWAYSMAIL=false
+STOTAB=()
 
 while [ -n "$1" ]; do
 case $1 in
     -h) __help;shift;;
     -m) MAIL=true;ALWAYSMAIL=true;shift;;
     -mf) MAIL=true;shift;;
+	-sto)
+		if [[ -z "$2" ]]; then
+			echo "Error: -sto requires a comma-separated list of repositories."; exit 1
+		fi
+		IFS=',' read -ra STOTAB <<< "$2"
+		shift; shift;;
     --) break;;
     -*) echo "Error: No such option $1. -h for help"; exit 1;;
     *) REPONAME="$1";shift;FILETAB=( "$@" );break;;
@@ -228,6 +253,12 @@ fi
 
 # Make local backup
 __plakar_launch
+
+# Optional sync to other repositories
+if [[ ${#STOTAB[@]} -gt 0 ]]; then
+	__log "Launching sync to ${#STOTAB[@]} target(s)."
+	__plakar_sync
+fi
 
 __log "Backup successfull *_*"
 SUCCESS=true

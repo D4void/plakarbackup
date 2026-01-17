@@ -17,3 +17,9 @@ TO=
 ;FILE=/tmp/file2
 ;FILE=
 
+; SYNC TARGET REPOSITORIES (optional)
+; Define repositories to sync to after backup.
+; One STO per line; can also be provided via CLI with -sto repo1,repo2
+;STO=repo1
+;STO=repo2
+
