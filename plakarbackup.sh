@@ -173,7 +173,7 @@ __terminate() {
 __plakar_launch() {
     # Launch plakar backup
     for FILE in "${FILETAB[@]}"; do
-        __log "Backing up $FILE ..."
+        __log "Backing up $FILE to $REPONAME ..."
         $PLAKAR at "@$REPONAME" backup "$FILE" 2>&1 | tee -a $LOGFILE
         if [[ $? -ne 0 ]]; then
             __error "Error during plakar backup of $FILE." 1
@@ -184,8 +184,8 @@ __plakar_launch() {
 __plakar_sync() {
 	# Sync plakar repository to specified targets
 	for DEST in "${STOTAB[@]}"; do
-		__log "Syncing @$REPONAME to $DEST ..."
-		$PLAKAR at "@$REPONAME" sync to "$DEST" 2>&1 | tee -a $LOGFILE
+		__log "Syncing $REPONAME to $DEST ..."
+		$PLAKAR at "@$REPONAME" sync to "@$DEST" 2>&1 | tee -a $LOGFILE
 		if [[ $? -ne 0 ]]; then
 			__error "Error during plakar sync to $DEST." 1
 		fi
