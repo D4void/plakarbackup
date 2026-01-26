@@ -1,0 +1,25 @@
+; .plakarbackup.ini Default settings file for plakarbackup.sh
+; Remember to "chmod 600" it
+
+
+; Mail settings 
+;(MTA to 'true' if a Mail Transfer Agent is configured on the system : exim, postfix etc. 'false' to use swaks to send mail)
+MTA=false
+MAILSERVER=
+MAILPORT=
+MAILLOGIN=
+MAILPASS=
+FROM=
+TO=
+
+; FILES TO BACKUP (1 line per file)
+;FILE=/tmp/file1
+;FILE=/tmp/file2
+;FILE=
+
+; SYNC TARGET REPOSITORIES (optional)
+; Define repositories to sync to after backup.
+; One STO per line; can also be provided via CLI with -sto repo1,repo2
+;STO=repo1
+;STO=repo2
+
