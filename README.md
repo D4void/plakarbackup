@@ -82,6 +82,27 @@ STO=remote-backup
 STO=secondary-backup
 ```
 
+### Initialize Plakar Repositories
+
+**Important:** Before using this script, you must initialize your plakar repositories. This is a one-time setup for each repository.
+
+```bash
+# First, add plakar storage location
+plakar store add mybackup /mnt/mybackup
+
+# Then, create your backup repository
+plakar at "@mybackup" create
+
+# For sync targets, create those repositories as well
+plakar store add remote-backup /mnt/remote-backup
+plakar at "@remote-backup" create
+
+plakar store add secondary-backup /mnt/secondary-backup
+plakar at "@secondary-backup" create
+```
+
+For more information, refer to the [plakar documentation](https://plakar.io/docs/).
+
 ## 📖 Usage
 
 ### Syntax
@@ -259,4 +280,8 @@ This program is free software licensed under the MIT License. See the [LICENSE](
 - Backup management with plakar
 - Email notifications
 - INI file configuration
+
+---
+
+*This README was initially generated with AI assistance.*
 
