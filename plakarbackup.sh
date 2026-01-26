@@ -4,24 +4,13 @@
 # Backup data files with plakar
 #
 #    Copyright (C) 2026 - D4void - d4void@m4he.fr
+# 	 Licensed under the MIT License. See LICENSE file in the project root for details.
 #    https://github.com/D4void/plakarbackup
 #
-#    This program is free software: you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License as published by
-#    the Free Software Foundation, either version 3 of the License, or
-#    (at your option) any later version.
-#
-#    This program is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#    GNU General Public License for more details.
-#
-#    You should have received a copy of the GNU General Public License
-#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ########################################################################################################################
 # Dependencies:
-#  - Require:  plakar
+#  - Require:  plakar https://plakar.io/ - https://plakar.io/download/
 #  - Optional: Swaks (for email) if MTA like exim is not available on the system
 ########################################################################################################################
 # Changelog:
@@ -224,11 +213,6 @@ if [[ -z "$REPONAME" ]]; then
 	echo "Error: no repo name specified. See -h for help."; exit 1
 fi
 
-# Check plakar availability
-if [[ ! -x "$PLAKAR" ]]; then
-	echo "Error: plakar not found at $PLAKAR. Please install plakar."; exit 1
-fi
-
 # Init settings
 __init_settings
 
@@ -244,6 +228,11 @@ LOGFILE="$HOME/.plakarbackup-$REPONAME.log"
 set -o pipefail 1
 echo -e "\n$BANNERINIT\n" | tee $LOGFILE
 __log "Launching backup."
+
+# Check plakar availability
+if [[ ! -x "$PLAKAR" ]]; then
+	__error "plakar not found at $PLAKAR. Please install plakar from: https://plakar.io/download/" 1
+fi
 
 # Check if plakar repository exists
 $PLAKAR at "@$REPONAME" ls >/dev/null 2>&1
