@@ -23,3 +23,6 @@ TO=
 ;STO=repo1
 ;STO=repo2
 
+; PLAKAR BACKUP OPTIONS (optional)
+; Additional options passed to the 'plakar backup' command. Can also be provided via CLI with -opts "..."
+;OPTS=
