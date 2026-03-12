@@ -25,4 +25,5 @@ TO=
 
 ; PLAKAR BACKUP OPTIONS (optional)
 ; Additional options passed to the 'plakar backup' command. Can also be provided via CLI with -opts "..."
+; Don't forget to simple quote file path (e.g -ignore)
 ;OPTS=
