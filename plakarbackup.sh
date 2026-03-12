@@ -177,7 +177,7 @@ __plakar_launch() {
         eval "opts_array=($OPTS)"
     fi
     for FILE in "${FILETAB[@]}"; do
-        __log "$PLAKAR at @$REPONAME backup ${opts_array[@]} $FILE"
+        __log "$PLAKAR at @$REPONAME backup ${opts_array[*]} $FILE"
 		__log "Backing up $FILE to $REPONAME ..."
         $PLAKAR at "@$REPONAME" backup "${opts_array[@]}" "$FILE" 2>&1 | tee -a $LOGFILE
         if [[ $? -ne 0 ]]; then
