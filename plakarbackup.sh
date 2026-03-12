@@ -170,9 +170,16 @@ __terminate() {
 
 __plakar_launch() {
     # Launch plakar backup
+    # Convert OPTS string to array to preserve quoted paths containing spaces
+    # e.g. OPTS="-ignore '/path/with spaces' -tag daily"
+    local opts_array=()
+    if [[ -n "$OPTS" ]]; then
+        eval "opts_array=($OPTS)"
+    fi
     for FILE in "${FILETAB[@]}"; do
-        __log "Backing up $FILE to $REPONAME ..."
-        $PLAKAR at "@$REPONAME" backup $OPTS "$FILE" 2>&1 | tee -a $LOGFILE
+        __log "$PLAKAR at @$REPONAME backup ${opts_array[@]} $FILE"
+		__log "Backing up $FILE to $REPONAME ..."
+        $PLAKAR at "@$REPONAME" backup "${opts_array[@]}" "$FILE" 2>&1 | tee -a $LOGFILE
         if [[ $? -ne 0 ]]; then
             __error "Error during plakar backup of $FILE." 1
         fi
@@ -183,6 +190,7 @@ __plakar_sync() {
 	# Sync plakar repository to specified targets
 	for DEST in "${STOTAB[@]}"; do
 		__log "Syncing $REPONAME to $DEST ..."
+		__log "$PLAKAR at @$REPONAME sync to @$DEST"
 		$PLAKAR at "@$REPONAME" sync to "@$DEST" 2>&1 | tee -a $LOGFILE
 		if [[ $? -ne 0 ]]; then
 			__error "Error during plakar sync to $DEST." 1
