@@ -80,6 +80,12 @@ FILE=/var/www
 ; Sync target repositories (optional)
 STO=remote-backup
 STO=secondary-backup
+
+; PLAKAR BACKUP OPTIONS (optional)
+; Additional options passed to the 'plakar backup' command. Can also be provided via CLI with -opts "..."
+; Don't forget to simple quote file path (e.g -ignore)
+;OPTS=
+
 ```
 
 ### Initialize Plakar Repositories
@@ -119,6 +125,7 @@ plakarbackup [-h] [-m] [-mf] [-sto <repo1>,<repo2>, ...] <repo_name> [<files>]
 | `-m` | Send log by email (success AND failure) |
 | `-mf` | Send log by email ONLY on failure |
 | `-sto <repos>` | Specify sync target repositories (comma-separated) |
+| `-opts <plakar options>` | Specify additional options to pass to plakar backup command  (refer to plakar doc) |
 | `<repo_name>` | Plakar repository name (required) |
 | `<files>` | Files/directories to backup (optional, overrides INI config) |
 
