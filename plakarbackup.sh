@@ -16,11 +16,12 @@
 # Changelog:
 # 2026/01/16 - v0.1 - Creation of plakarbackup.sh
 # 2026/01/17 - v0.2 - Add sync (-sto) option
+# 2026/03/12 - v0.3 - Add plakar backup extra options (-opts) support
 #
 ########################################################################################################################
 
 
-ver="0.2"
+ver="0.3"
 
 BANNERINIT="=======================- PLAKARBACKUP LOG -========================="
 BANNEREND="==================- END of PLAKARBACKUP LOG -======================="
@@ -49,6 +50,9 @@ OPTIONS:
 	-m send backup log by email - check mail section in .ini file
 	-mf send backup log by email only on failure
 	-sto <repo1>,<repo2>, ... specify repositories to sync the repo to after the backup
+	-opts "plakar backup options" specify additional options to pass to plakar backup command 
+		(e.g. -[-concurrency number] [-force-timestamp timestamp] [-ignore pattern] [-ignore-file file] [-check] 
+		[-no-xattr] [-o option=value] [-packfiles path] [-quiet] [-silent] [-tag tag] [-scan] [place] )
 	
 INI FILE:
 	.ini file is used to configure backups (directories, mail settings etc).
@@ -112,6 +116,11 @@ __init_settings() {
 	if [[ ${#STOTAB[@]} -eq 0 ]]; then
 		IFS=':' read -ra STOTAB <<< $(awk -v patt="^STO" -F "=" 'BEGIN {ORS=":"} {if (! ($0 ~ /^;/) && $0 ~ patt ) print $2}' $INIFILE)
 	fi
+
+	# PLAKAR BACKUP OPTIONS (optional) - Read OPTS from INI if not provided via CLI
+	if [[ -z "$OPTS" ]]; then
+		OPTS=$(__read_ini "^OPTS")
+	fi
 }
 
 __error() {
@@ -161,9 +170,16 @@ __terminate() {
 
 __plakar_launch() {
     # Launch plakar backup
+    # Convert OPTS string to array to preserve quoted paths containing spaces
+    # e.g. OPTS="-ignore '/path/with spaces' -tag daily"
+    local opts_array=()
+    if [[ -n "$OPTS" ]]; then
+        eval "opts_array=($OPTS)"
+    fi
     for FILE in "${FILETAB[@]}"; do
-        __log "Backing up $FILE to $REPONAME ..."
-        $PLAKAR at "@$REPONAME" backup "$FILE" 2>&1 | tee -a $LOGFILE
+        __log "$PLAKAR at @$REPONAME backup ${opts_array[*]} $FILE"
+		__log "Backing up $FILE to $REPONAME ..."
+        $PLAKAR at "@$REPONAME" backup "${opts_array[@]}" "$FILE" 2>&1 | tee -a $LOGFILE
         if [[ $? -ne 0 ]]; then
             __error "Error during plakar backup of $FILE." 1
         fi
@@ -174,6 +190,7 @@ __plakar_sync() {
 	# Sync plakar repository to specified targets
 	for DEST in "${STOTAB[@]}"; do
 		__log "Syncing $REPONAME to $DEST ..."
+		__log "$PLAKAR at @$REPONAME sync to @$DEST"
 		$PLAKAR at "@$REPONAME" sync to "@$DEST" 2>&1 | tee -a $LOGFILE
 		if [[ $? -ne 0 ]]; then
 			__error "Error during plakar sync to $DEST." 1
@@ -191,6 +208,7 @@ MAIL=false
 SUCCESS=false
 ALWAYSMAIL=false
 STOTAB=()
+OPTS=""
 
 while [ -n "$1" ]; do
 case $1 in
@@ -202,6 +220,12 @@ case $1 in
 			echo "Error: -sto requires a comma-separated list of repositories."; exit 1
 		fi
 		IFS=',' read -ra STOTAB <<< "$2"
+		shift; shift;;
+	-opts)
+		if [[ -z "$2" ]]; then
+			echo "Error: -opts requires a quoted string of options."; exit 1
+		fi
+		OPTS="$2"
 		shift; shift;;
     --) break;;
     -*) echo "Error: No such option $1. -h for help"; exit 1;;
